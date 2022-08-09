@@ -1,0 +1,72 @@
+---
+title: "STAT6021.Project2.McCauley"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(MASS)
+King <- read.csv('kc_house_data.csv')
+King$yr_renovated[King$yr_renovated == 0] <- King$yr_built[King$yr_renovated == 0]
+times <- paste(substr(word(King$date, 1, sep='T'), 1, 4), substr(word(King$date, 1, sep='T'), 5, 6), substr(word(King$date, 1, sep='T'), 7, 8), sep='-')
+King <- mutate(King, time = times)
+King$time <- as.Date(King$time, "%Y-%m-%d")
+King$time <- as.numeric(difftime(King$time, min(King$time), units='days'))
+King <- dplyr::select(King, -id, -date)
+
+King <- dplyr::select(King, -zipcode, -lat, -long, -sqft_above, -sqft_basement, -time, -yr_built, -yr_renovated, -sqft_lot15)
+King <- filter(King, bedrooms<33) # this appeared to be a data entry error
+King <- filter(King, bathrooms != 0) # these appeared to be entry errors as well
+
+#King <- mutate(King, ppsqft = price/sqft_living)
+King <- mutate(King, apt = factor(as.numeric(sqft_living/sqft_lot >= 1)))
+King <- dplyr::select(King, -sqft_lot)
+
+set.seed(6021)
+sample<-sample.int(nrow(King), floor(.80*nrow(King)), replace = F)
+train<-King[sample, ]
+test<-King[-sample, ]
+```
+
+```{r}
+train <- dplyr::select(train, -bathrooms)
+result <- lm(price~., data=train)
+summary(result)
+```
+```{r}
+plot(result$fitted.values, result$residuals)
+```
+```{r}
+boxcox(result, lambda = seq(-0,0.1,.001))
+```
+```{r}
+result <- lm(price^.05~., data=train)
+summary(result)
+```
+```{r}
+plot(result$fitted.values, result$residuals)
+```
+```{r}
+boxcox(result)
+```
+```{r}
+acf(result$residuals)
+```
+```{r}
+qqnorm(result$residuals)
+qqline(result$residuals, col="red")
+```
+
+```{r}
+# intercept-only model
+regnull <- lm(log(price)~1, data=train)
+# model with all predictors
+regfull <- lm(log(price)~., data=train)
+
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward")
+```
+```{r}
+step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
+```
+
