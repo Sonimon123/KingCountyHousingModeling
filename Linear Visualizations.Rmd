@@ -1,0 +1,280 @@
+---
+title: "Project2"
+output: html_document
+date: "2022-08-08"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(GGally)
+library(reshape2)
+library(gridExtra)
+house <- read.csv('houses_clean.csv', header=TRUE)
+```
+
+```{r}
+house <- subset(house, select = -c(X))
+set.seed(6021)
+sample<-sample.int(nrow(house), floor(.80*nrow(house)), replace = F)
+train<-house[sample, ]
+test<-house[-sample, ]
+```
+
+```{r}
+summary(train)
+options(scipen=10000)
+```
+
+```{r}
+apply(train,2,sd)
+```
+
+
+
+```{r}
+train %>% 
+  ggplot(aes(x=price))+
+  geom_histogram()+
+  ggtitle('Sale Price')+
+  xlab('Price (in USD)')+
+  ylab('Count')
+```
+
+```{r}
+train %>% 
+  filter(price <= 4000000) %>% 
+  ggplot(aes(x=price))+
+  geom_histogram()+
+  ggtitle('Sale Price')+
+  xlab('Price (in USD)')+
+  ylab('Count')
+```
+
+```{r}
+train %>% 
+  filter(price <= 3000000) %>% 
+  ggplot(aes(x=price))+
+  geom_histogram(aes(color=seattle, alpha=0.5))
+```
+
+```{r}
+bedsale <- train %>% 
+  ggplot(aes(x=bedrooms, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle('Bedrooms and Sale Price')+
+  xlab('Number of Bathrooms')+
+  ylab('Price (in USD)')
+```
+
+```{r}
+bathsale <- train %>%
+  ggplot(aes(x=bathrooms, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle('Bathrooms and Sale Price')+
+  xlab('Number of Bedrooms')+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+livingsale <- train %>% 
+  ggplot(aes(x=sqft_living, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle('Living Space and Sale Price')+
+  xlab('Living Space (in sq. ft.)')+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+lotsale <- train %>%
+  ggplot(aes(x=sqft_lot, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle('Lot Size and Sale Price')+
+  xlab('Lot Size (in sq. ft.)')+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+grid.arrange(bedsale,bathsale,livingsale, lotsale, ncol=2)
+```
+
+```{r}
+floorsale <- train %>% 
+  ggplot(aes(x=as.factor(floors), y=price))+
+  geom_boxplot()+
+  ggtitle('Floors and Sale Price')+
+  xlab('Number of Floors')+
+  ylab('Price (in USD)')
+
+```
+
+```{r}
+watersale <- train %>% 
+  ggplot(aes(x=factor(waterfront, labels=c('No', 'Yes')), y=price))+
+  geom_boxplot()+
+  ggtitle('Waterfronts and Sale Price')+
+  xlab('Is there a Waterfront View?')+
+  ylab('Price (in USD)')
+
+```
+
+```{r}
+viewsale <- train %>% 
+  ggplot(aes(x=as.factor(view), y=price))+
+  geom_boxplot()+
+  ggtitle('View Quality and Sale Price')+
+  xlab('View Rating')+
+  ylab('Price (in USD)')
+
+```
+
+```{r}
+yrsale <- train %>%
+  ggplot(aes(x=yr_built, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle('Year Built and Sale Price')+
+  xlab('Year Built')+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+
+```
+
+```{r}
+grid.arrange(floorsale,watersale,viewsale, yrsale, ncol=2)
+```
+
+```{r}
+living15sale <- train %>%
+  ggplot(aes(x=sqft_living15, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle("Neighbors' Living Space and Price")+
+  xlab("Neighbors' Living Space (in sq. ft.)")+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+
+```
+
+```{r}
+lot15sale <- train %>%
+  ggplot(aes(x=sqft_lot15, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle("Neighbors' Lot Size and Sale Price")+
+  xlab("Neighbors' Lot Size (in sq. ft.)")+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+
+```
+
+```{r}
+lot15sale <- train %>%
+  ggplot(aes(x=sqft_lot15, y=price))+
+  geom_point(alpha=0.1)+
+  ggtitle("Neighbors' Lot Size and Sale Price")+
+  xlab("Neighbors' Lot Size (in sq. ft.)")+
+  ylab('Price (in USD)')+
+  geom_smooth(method='lm', se=FALSE)
+
+```
+
+```{r}
+seattlesale <- train %>% 
+  ggplot(aes(x=factor(seattle, labels=c('No', 'Yes')), y=price))+
+  geom_boxplot()+
+  ggtitle('Seattle and Sale Price')+
+  xlab('Is the House in Seattle')+
+  ylab('Price (in USD)')
+
+```
+
+```{r}
+renovatedsale <- train %>% 
+  ggplot(aes(x=factor(renovated, labels=c('No', 'Yes')), y=price))+
+  geom_boxplot()+
+  ggtitle('Renovated Houses and Sale Price')+
+  xlab('Has the House Ever Been Renovated?')+
+  ylab('Price (in USD)')
+
+```
+
+```{r}
+grid.arrange(seattlesale,renovatedsale, ncol=2)
+```
+
+```{r}
+grid.arrange(living15sale,lot15sale, ncol=2)
+```
+
+For Logistic: Is our house in Seattle or not?
+
+For Linear: PricexSqFt_Living
+
+Bath x Bed ratio
+
+```{r}
+#cor(subset(house, select = c(price_per_sqft, price, sqft_living, yr_built, renovated, view)))
+cormelt <- melt(cor(train))
+
+head(cormelt)
+ggplot(data = cormelt, aes(x=Var1, y=Var2, fill=value))+
+  geom_tile()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_text(aes(label = round(value, 2)), color = "white", size = 2) +
+  guides(fill = guide_colourbar(title = 'Correlation'))+
+  coord_fixed()
+```
+
+```{r}
+result <- lm(price~., data=house)
+summary(result)
+```
+
+```{r}
+vif(result)
+```
+
+```{r}
+house %>% 
+  ggplot(aes(x=bedrooms))+
+  geom_histogram(binwidth=1)
+```
+
+```{r}
+house %>% 
+  ggplot(aes(x=sqft_living, y=price))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+house %>% 
+  ggplot(aes(x=sqft_living15, y=price))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+house %>% 
+  ggplot(aes(x=bedrooms, y=price))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+house %>% 
+  ggplot(aes(x=bathrooms, y=price))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+house %>%
+  ggplot(aes(x=basement, y=price, color=grade))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method='lm', se=FALSE)
+```
+
+```{r}
+ggpairs(subset(house, select = -c(waterfront, grade, condition, view, yr_built, sqft_living15, sqft_lot15, renovated, basement)), width=200, height=200)
+```
